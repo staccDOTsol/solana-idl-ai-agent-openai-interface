@@ -1,10 +1,13 @@
 openapi: 3.1.0
 info:
   title: idlbazaar
-  description: ""
+  description: Solana Program Interface for IDL management
   version: 0.1.0
   license:
     name: ""
+servers:
+  - url: https://raisethedead.fun
+    description: Main production server
 paths:
   /instruction_requirements/{program_id}/{ix_name}:
     get:
@@ -144,6 +147,26 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/IdlType"
+    IdlType:
+      type: object
+      description: Represents an IDL type definition.
+      properties:
+        name:
+          type: string
+        fields:
+          type: array
+          items:
+            type: string
+    PdaDerivation:
+      type: object
+      description: Represents PDA derivation information.
+      properties:
+        seeds:
+          type: array
+          items:
+            $ref: "#/components/schemas/EnhancedSeedInfo"
+        program_id:
+          type: string
     EnhancedInstructionRequirements:
       type: object
       required:

@@ -1,20 +1,19 @@
 openapi: 3.1.0
 info:
   title: idlbazaar
-  description: Solana Program Interface for IDL management
+  description: Solana Program IDL Management API
   version: 0.1.0
   license:
     name: ""
 servers:
   - url: https://raisethedead.fun
-    description: Main production server
+    description: Production Server
 paths:
   /instruction_requirements/{program_id}/{ix_name}:
     get:
       tags:
         - crate
       operationId: getInstructionRequirements
-      summary: Retrieve instruction requirements
       parameters:
         - name: program_id
           in: path
@@ -38,18 +37,17 @@ paths:
       tags:
         - crate
       operationId: prepareInstruction
-      summary: Prepare an instruction
       parameters:
         - name: program_id
           in: path
-          description: Program ID
           required: true
+          description: Program ID
           schema:
             type: string
         - name: ix_name
           in: path
-          description: Instruction name
           required: true
+          description: Instruction name
           schema:
             type: string
       requestBody:
@@ -65,12 +63,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Instruction"
+  /prepare_transaction:
+    post:
+      tags:
+        - crate
+      operationId: prepareTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionPayload"
+      responses:
+        "200":
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
   /program/{program_id}/instructions:
     get:
       tags:
         - crate
       operationId: getProgramInstructions
-      summary: List all instructions for a program
       parameters:
         - name: program_id
           in: path
@@ -91,7 +106,6 @@ paths:
       tags:
         - crate
       operationId: uploadIdl
-      summary: Upload and process an IDL
       requestBody:
         required: true
         content:
@@ -147,26 +161,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/IdlType"
-    IdlType:
-      type: object
-      description: Represents an IDL type definition.
-      properties:
-        name:
-          type: string
-        fields:
-          type: array
-          items:
-            type: string
-    PdaDerivation:
-      type: object
-      description: Represents PDA derivation information.
-      properties:
-        seeds:
-          type: array
-          items:
-            $ref: "#/components/schemas/EnhancedSeedInfo"
-        program_id:
-          type: string
     EnhancedInstructionRequirements:
       type: object
       required:
@@ -364,6 +358,74 @@ components:
         discriminator:
           type: string
           format: binary
+    IdlType:
+      type: object
+      description: Represents an IDL type definition.
+      properties:
+        name:
+          type: string
+        fields:
+          type: array
+          items:
+            type: string
+    PdaDerivation:
+      type: object
+      description: Represents PDA derivation information.
+      properties:
+        seeds:
+          type: array
+          items:
+            $ref: "#/components/schemas/EnhancedSeedInfo"
+        program_id:
+          type: string
+    Transaction:
+      type: object
+      required:
+        - blockhash
+        - instructions
+        - signatures_required
+      properties:
+        blockhash:
+          type: string
+        instructions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Instruction"
+        signatures_required:
+          type: array
+          items:
+            type: string
+    TransactionPayload:
+      type: object
+      required:
+        - instructions
+      properties:
+        compute_budget:
+          type: object
+          nullable: true
+        instructions:
+          type: array
+          items:
+            $ref: "#/components/schemas/InstructionPayload"
+    InstructionPayload:
+      type: object
+      required:
+        - program_id
+        - instruction_name
+        - accounts
+        - args
+      properties:
+        program_id:
+          type: string
+        instruction_name:
+          type: string
+        accounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountMeta"
+        args:
+          type: array
+          items: {}
 tags:
   - name: Solana Program Interface
     description: Solana Program IDL Management API

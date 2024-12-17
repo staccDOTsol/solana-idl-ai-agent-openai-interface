@@ -1,0 +1,346 @@
+openapi: 3.1.0
+info:
+  title: idlbazaar
+  description: ""
+  version: 0.1.0
+  license:
+    name: ""
+paths:
+  /instruction_requirements/{program_id}/{ix_name}:
+    get:
+      tags:
+        - crate
+      operationId: getInstructionRequirements
+      summary: Retrieve instruction requirements
+      parameters:
+        - name: program_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: ix_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Instruction requirements
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnhancedInstructionRequirements"
+  /prepare_instruction/{program_id}/{ix_name}:
+    post:
+      tags:
+        - crate
+      operationId: prepareInstruction
+      summary: Prepare an instruction
+      parameters:
+        - name: program_id
+          in: path
+          description: Program ID
+          required: true
+          schema:
+            type: string
+        - name: ix_name
+          in: path
+          description: Instruction name
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrepareInstructionPayload"
+      responses:
+        "200":
+          description: Instruction created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Instruction"
+  /program/{program_id}/instructions:
+    get:
+      tags:
+        - crate
+      operationId: getProgramInstructions
+      summary: List all instructions for a program
+      parameters:
+        - name: program_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of all instructions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InstructionTemplate"
+  /upload_idl:
+    post:
+      tags:
+        - crate
+      operationId: uploadIdl
+      summary: Upload and process an IDL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnchorIdl"
+      responses:
+        "200":
+          description: IDL processed successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InstructionTemplate"
+components:
+  schemas:
+    AccountMeta:
+      type: object
+      required:
+        - pubkey
+        - is_signer
+        - is_writable
+      properties:
+        pubkey:
+          type: string
+        is_signer:
+          type: boolean
+        is_writable:
+          type: boolean
+    AnchorIdl:
+      type: object
+      required:
+        - address
+        - metadata
+        - instructions
+        - accounts
+        - types
+      properties:
+        address:
+          type: string
+        metadata:
+          $ref: "#/components/schemas/IdlMetadata"
+        instructions:
+          type: array
+          items:
+            $ref: "#/components/schemas/IdlInstruction"
+        accounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/IdlAccount"
+        types:
+          type: array
+          items:
+            $ref: "#/components/schemas/IdlType"
+    EnhancedInstructionRequirements:
+      type: object
+      required:
+        - accounts
+        - arguments
+        - known_addresses
+      properties:
+        accounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/EnhancedAccountRequirement"
+        arguments:
+          type: array
+          items:
+            $ref: "#/components/schemas/EnhancedArgumentRequirement"
+        known_addresses:
+          type: object
+          additionalProperties:
+            type: string
+    EnhancedAccountRequirement:
+      type: object
+      required:
+        - name
+        - is_signer
+        - is_writable
+      properties:
+        name:
+          type: string
+        is_signer:
+          type: boolean
+        is_writable:
+          type: boolean
+        known_address:
+          type: string
+          nullable: true
+        pda_derivation:
+          $ref: "#/components/schemas/EnhancedPdaInfo"
+          nullable: true
+    EnhancedArgumentRequirement:
+      type: object
+      required:
+        - name
+        - type_info
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        type_info:
+          type: string
+    EnhancedPdaInfo:
+      type: object
+      required:
+        - seeds
+      properties:
+        program_id:
+          type: string
+          nullable: true
+        seeds:
+          type: array
+          items:
+            $ref: "#/components/schemas/EnhancedSeedInfo"
+    EnhancedSeedInfo:
+      type: object
+      required:
+        - seed_type
+      properties:
+        seed_type:
+          type: string
+        account_dependency:
+          type: string
+          nullable: true
+        constant_value:
+          type: string
+          nullable: true
+    PrepareInstructionPayload:
+      type: object
+      required:
+        - accounts
+        - args
+      properties:
+        accounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountMeta"
+        args:
+          type: array
+          items: {}
+    Instruction:
+      type: object
+      required:
+        - program_id
+        - accounts
+        - data
+      properties:
+        program_id:
+          type: string
+        accounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountMeta"
+        data:
+          type: string
+          format: binary
+    InstructionTemplate:
+      type: object
+      required:
+        - name
+        - required_accounts
+        - arguments
+        - pda_derivations
+      properties:
+        name:
+          type: string
+        required_accounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/RequiredAccount"
+        arguments:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArgumentSpec"
+        pda_derivations:
+          type: array
+          items:
+            $ref: "#/components/schemas/PdaDerivation"
+    RequiredAccount:
+      type: object
+      required:
+        - name
+        - is_signer
+        - is_writable
+      properties:
+        name:
+          type: string
+        is_signer:
+          type: boolean
+        is_writable:
+          type: boolean
+    ArgumentSpec:
+      type: object
+      required:
+        - name
+        - type_info
+      properties:
+        name:
+          type: string
+        type_info:
+          type: string
+    IdlMetadata:
+      type: object
+      required:
+        - name
+        - version
+        - spec
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        description:
+          type: string
+          nullable: true
+        spec:
+          type: string
+    IdlInstruction:
+      type: object
+      required:
+        - name
+        - discriminator
+        - accounts
+        - args
+      properties:
+        name:
+          type: string
+        discriminator:
+          type: string
+          format: binary
+        accounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/IdlAccount"
+        args:
+          type: array
+          items: {}
+    IdlAccount:
+      type: object
+      required:
+        - name
+        - discriminator
+      properties:
+        name:
+          type: string
+        discriminator:
+          type: string
+          format: binary
+tags:
+  - name: Solana Program Interface
+    description: Solana Program IDL Management API

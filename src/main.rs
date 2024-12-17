@@ -515,6 +515,7 @@ async fn get_instruction_requirements(
         prepare_instruction,
         get_program_instructions,
         get_instruction_requirements,
+        prepare_transaction,
     ),
     components(
         schemas(
@@ -543,6 +544,10 @@ async fn get_instruction_requirements(
             EnhancedPdaInfo,
             EnhancedSeedInfo,
             EnhancedArgumentRequirement,
+            TransactionPayload,
+            InstructionPayload,
+            ComputeBudgetConfig,
+            Transaction,
         )
     ),
     tags(
